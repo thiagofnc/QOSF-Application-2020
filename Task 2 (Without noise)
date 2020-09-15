@@ -1,0 +1,191 @@
+%matplotlib inline
+# Importing standard Qiskit libraries and configuring account
+from qiskit import QuantumCircuit, execute, Aer, IBMQ
+from qiskit.compiler import transpile, assemble
+from qiskit.tools.jupyter import *
+from qiskit.visualization import *
+from numpy import *
+import random
+# Loading your IBM Q account(s)
+provider = IBMQ.load_account()
+
+
+
+def gradient1(theta1):
+    global expec_statevector
+    delta_theta = 0.01
+    theta1plus = (theta1 + (delta_theta/2))
+    theta1minus = (theta1 - (delta_theta/2))
+    
+    circuit = QuantumCircuit(2, 2)
+    backend = Aer.get_backend('statevector_simulator')
+
+    circuit.ry(theta1plus, 0)
+    circuit.cx(0, 1)
+    circuit.rx(theta2, 1)
+
+    result = execute(circuit, backend, shots=100).result()
+    statevector_theta1plus = result.get_statevector(circuit)
+    
+    error_a_theta1plus = ((statevector_theta1plus[0]**2).real - (expec_statevector[0]**2).real)
+    error_b_theta1plus = ((statevector_theta1plus[1]**2).real - (expec_statevector[1]**2).real)
+    error_c_theta1plus = ((statevector_theta1plus[2]**2).real - (expec_statevector[2]**2).real)
+    error_d_theta1plus = ((statevector_theta1plus[3]**2).real - (expec_statevector[3]**2).real)
+    
+    error_theta1plus = (error_a_theta1plus + error_b_theta1plus + error_c_theta1plus +error_d_theta1plus)
+    
+    circuit = QuantumCircuit(2, 2)
+    backend = Aer.get_backend('statevector_simulator')
+
+    circuit.ry(theta1minus, 0)
+    circuit.cx(0, 1)
+    circuit.rx(theta2, 1)
+
+    result = execute(circuit, backend, shots=100).result()
+    statevector_theta1minus = result.get_statevector(circuit)
+    
+    error_a_theta1minus = ((statevector_theta1minus[0]**2).real - (expec_statevector[0]**2).real)
+    error_b_theta1minus = ((statevector_theta1minus[1]**2).real - (expec_statevector[1]**2).real)
+    error_c_theta1minus = ((statevector_theta1minus[2]**2).real - (expec_statevector[2]**2).real)
+    error_d_theta1minus = ((statevector_theta1minus[3]**2).real - (expec_statevector[3]**2).real)
+    
+    error_theta1minus = (error_a_theta1minus + error_b_theta1minus + error_c_theta1minus +error_d_theta1minus)
+    gradient_theta1 = (error_theta1plus - error_theta1minus)
+    return gradient_theta1
+    
+def gradient2(theta2):
+    delta_theta = 0.01
+    global expec_statevector
+    
+    theta2plus = (theta2 + delta_theta/2)
+    theta2minus = (theta2 - delta_theta/2)
+    
+    circuit = QuantumCircuit(2, 2)
+    backend = Aer.get_backend('statevector_simulator')
+
+    circuit.ry(theta1, 0)
+    circuit.cx(0, 1)
+    circuit.rx(theta2plus, 1)
+
+    result = execute(circuit, backend, shots=100).result()
+    statevector_theta2plus = result.get_statevector(circuit)
+    
+    error_a_theta2plus = ((statevector_theta2plus[0]**2).real - (expec_statevector[0]**2).real)
+    error_b_theta2plus = ((statevector_theta2plus[1]**2).real - (expec_statevector[1]**2).real)
+    error_c_theta2plus = ((statevector_theta2plus[2]**2).real - (expec_statevector[2]**2).real)
+    error_d_theta2plus = ((statevector_theta2plus[3]**2).real - (expec_statevector[3]**2).real)
+    
+    error_theta2plus = (error_a_theta2plus + error_b_theta2plus + error_c_theta2plus +error_d_theta2plus)
+    
+    circuit = QuantumCircuit(2, 2)
+    backend = Aer.get_backend('statevector_simulator')
+
+    circuit.ry(theta1, 0)
+    circuit.cx(0, 1)
+    circuit.rx(theta2minus, 1)
+
+    result = execute(circuit, backend, shots=100).result()
+    statevector_theta2minus = result.get_statevector(circuit)
+    
+    error_a_theta2minus = ((statevector_theta2minus[0]**2).real - (expec_statevector[0]**2).real)
+    error_b_theta2minus = ((statevector_theta2minus[1]**2).real - (expec_statevector[1]**2).real)
+    error_c_theta2minus = ((statevector_theta2minus[2]**2).real - (expec_statevector[2]**2).real)
+    error_d_theta2minus = ((statevector_theta2minus[3]**2).real - (expec_statevector[3]**2).real)
+    
+    error_theta2minus = (error_a_theta2minus + error_b_theta2minus + error_c_theta2minus +error_d_theta2minus)
+    gradient_theta2 = (error_theta2plus - error_theta2minus)
+    return gradient_theta2
+    
+
+circuit = QuantumCircuit(2, 2)
+backend = Aer.get_backend('statevector_simulator')
+
+circuit.ry(pi/2, 0)
+circuit.cx(0, 1)
+circuit.rx(pi, 1)
+
+result = execute(circuit, backend, shots=100).result()
+expec_statevector = result.get_statevector(circuit)
+
+circuit = QuantumCircuit(2, 2)
+backend = Aer.get_backend('statevector_simulator')
+
+
+theta1 = random.uniform(0, pi)
+theta2 = random.uniform(0, pi)
+
+circuit.ry(theta1, 0)
+circuit.cx(0, 1)
+circuit.rx(theta2, 1)
+
+result = execute(circuit, backend, shots=100).result()
+statevector = result.get_statevector(circuit)
+
+iteration = 0
+while statevector[0 and 1 and 2 and 3] != expec_statevector[0 and 1 and 2 and 3]:
+    learning_rate = 0.5
+    error_a = ((statevector[0]**2).real - (expec_statevector[0]**2).real)
+    error_b = ((statevector[1]**2).real - (expec_statevector[1]**2).real)
+    error_c = ((statevector[2]**2).real - (expec_statevector[2]**2).real)
+    error_d = ((statevector[3]**2).real - (expec_statevector[3]**2).real)
+    
+    total_error = (error_a + error_b + error_c + error_d) 
+    print("iteration " + str(iteration) + ":")
+    print(str(theta1) + " / " + str(theta2))
+    print(total_error)
+    iteration += 1
+    gradient_theta1 = gradient1(theta1)
+    new_theta1 = (theta1 - gradient_theta1*learning_rate)
+    theta1 = new_theta1
+    
+    circuit = QuantumCircuit(2,2)
+    backend = Aer.get_backend('statevector_simulator')
+    
+    circuit.ry(theta1, 0)
+    circuit.cx(0, 1)
+    circuit.rx(theta2, 1)
+    result = execute(circuit, backend, shots=100).result()
+    statevector_iter = result.get_statevector(circuit)
+    statevector = statevector_iter
+    print("iteration " + str(iteration) + ":")
+    error_a = ((statevector[0]**2).real - (expec_statevector[0]**2).real)
+    error_b = ((statevector[1]**2).real - (expec_statevector[1]**2).real)
+    error_c = ((statevector[2]**2).real - (expec_statevector[2]**2).real)
+    error_d = ((statevector[3]**2).real - (expec_statevector[3]**2).real)
+    
+    total_error = (error_a + error_b + error_c + error_d)
+    print(str(theta1) + " / " + str(theta2))
+    print(total_error)
+    iteration += 1
+    statevector = statevector_iter
+    if statevector[0 and 1 and 2 and 3] != expec_statevector[0 and 1 and 2 and 3]:
+        gradient2(theta2)
+        gradient_theta2 = gradient2(theta2)
+        new_theta2 = (theta2 - gradient_theta2*learning_rate)
+        theta2 = new_theta2.real
+        
+        circuit = QuantumCircuit(2,2)
+        backend = Aer.get_backend('statevector_simulator')
+    
+        circuit.ry(theta1, 0)
+        circuit.cx(0, 1)
+        circuit.rx(theta2, 1)
+        result = execute(circuit, backend, shots=100).result()
+        statevector_iter = result.get_statevector(circuit)
+        statevector = statevector_iter
+        error_a = ((statevector[0]**2).real - (expec_statevector[0]**2).real)
+        error_b = ((statevector[1]**2).real - (expec_statevector[1]**2).real)
+        error_c = ((statevector[2]**2).real - (expec_statevector[2]**2).real)
+        error_d = ((statevector[3]**2).real - (expec_statevector[3]**2).real)
+    
+        total_error = (error_a + error_b + error_c +error_d)
+        print("iteration " + str(iteration) + ":")
+        print(str(theta1) + " / " + str(theta2))
+        print(total_error)
+        iteration += 1
+        statevector = statevector_iter
+else:
+    print("\nJob was done!")
+    print("This is the first angle: " + str(theta1))
+    print("This is the second angle: " + str(theta2))
+    
